@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yuk Khusyuk Web Apps</title>
+  <meta name="description" content="Akses Kalkulator Cemas dan Khusyuk Learn dari Yuk Khusyuk.">
+  <style>
+    :root{--black:#0C0A06;--cream:#F8F1E4;--gold:#DCAC53;--blue:#54B9E8;--orange:#F6A623;--muted:#B8AB8E}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#2a2110 0,#0C0A06 48%,#070604 100%);color:var(--cream);display:grid;place-items:center;padding:28px}
+    .wrap{width:min(980px,100%)} .brand{letter-spacing:.26em;color:var(--gold);font-weight:800;text-align:center;margin-bottom:16px} h1{text-align:center;font-size:clamp(34px,6vw,64px);line-height:1.02;margin:0 0 12px;font-family:Georgia,serif} p{text-align:center;color:var(--muted);font-size:18px;margin:0 auto 34px;max-width:680px;line-height:1.6}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card{background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025));border:1px solid rgba(220,172,83,.22);border-radius:24px;padding:28px;min-height:260px;display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;color:inherit;box-shadow:0 22px 60px rgba(0,0,0,.22);transition:.18s}.card:hover{transform:translateY(-4px);border-color:rgba(220,172,83,.52)}
+    .icon{font-size:44px;margin-bottom:16px}.card h2{font-size:30px;line-height:1.05;margin:0 0 12px}.card span{color:var(--muted);line-height:1.55}.btn{margin-top:22px;display:inline-flex;align-items:center;gap:10px;font-weight:850;color:#101010;background:linear-gradient(180deg,#f2cc79,#d49b33);padding:13px 18px;border-radius:999px;align-self:flex-start}.blue .btn{background:linear-gradient(180deg,#76d3ff,#2ca6e8);color:white}.foot{text-align:center;margin-top:28px;font-size:13px;color:#8b7f66}
+    @media(max-width:720px){.grid{grid-template-columns:1fr}.card{min-height:220px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="brand">YUK KHUSYUK</div>
+    <h1>Web App Yuk Khusyuk</h1>
+    <p>Pilih aplikasi yang mau dibuka. File ini bisa langsung di-upload ke hosting sebagai static website.</p>
+    <div class="grid">
+      <a class="card" href="/kalkulator-cemas/">
+        <div><div class="icon">🫀</div><h2>Kalkulator Cemas</h2><span>Tes ketenangan hati 15 pertanyaan, grafik hasil, dan langkah menenangkan.</span></div>
+        <b class="btn">Buka App →</b>
+      </a>
+      <a class="card blue" href="/khusyuk-learn/">
+        <div><div class="icon">🕌</div><h2>Khusyuk Learn</h2><span>Belajar makna bacaan dan gerakan sholat dengan level, kuis, XP, dan progress.</span></div>
+        <b class="btn">Buka App →</b>
+      </a>
+    </div>
+    <div class="foot">Static bundle siap deploy • /kalkulator-cemas/ dan /khusyuk-learn/</div>
+  </main>
+</body>
+</html>

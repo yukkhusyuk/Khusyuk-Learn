@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator Cemas · Tes Ketenangan Hati — Yuk Khusyuk</title>
+<meta name="description" content="Tes ketenangan hati berbasis pendekatan psikologi: kenali tingkat & pola cemasmu lewat 15 pertanyaan, lihat hasilnya dalam grafik, dan dapatkan langkah menenangkan — batin & ilmiah berjalan bareng.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0C0A06;--ink:#15120B;--ink2:#211C12;--ink3:#2C2516;
+  --paper:#F6EFDF;--paper2:#EFE6D2;
+  --gold:#DCAC53;--gold-soft:#EBCB89;--gold-deep:#B8893A;
+  --sage:#6E8C62;--sage-soft:#9DB890;
+  --amber:#D99A4E;--rust:#C2663D;
+  --tx:#2A2419;--tx-soft:#6B6353;--tx-light:#E8DEC9;--tx-mute:#A99B7C;--line:#E4D8BE;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--black);color:var(--tx);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+.serif{font-family:'Fraunces',serif}
+.ar{font-family:'Amiri',serif;direction:rtl}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+.app{min-height:100vh;background:radial-gradient(120% 70% at 50% -10%, #241d10 0%, var(--black) 55%);display:flex;flex-direction:column}
+
+/* top brand bar */
+.bar{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;max-width:800px;margin:0 auto;width:100%}
+.bar .b{display:flex;align-items:center;gap:9px;color:var(--gold-soft);font-weight:700;font-size:13px;letter-spacing:.12em}
+.bar .b img{height:24px}
+.bar .step{font-size:12px;color:var(--tx-mute);font-variant-numeric:tabular-nums}
+
+.screen{flex:1;display:none;animation:fade .45s ease}
+.screen.on{display:flex;flex-direction:column}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ===== INTRO ===== */
+.intro{align-items:center;text-align:center;justify-content:center;padding:14px 20px 60px}
+.intro .mark{height:64px;margin-bottom:22px;filter:drop-shadow(0 8px 26px rgba(220,172,83,.3))}
+.intro .eyebrow{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold-deep);font-weight:700;margin-bottom:16px}
+.intro h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,6vw,46px);color:#fff;line-height:1.1;letter-spacing:-.01em}
+.intro h1 .g{background:linear-gradient(180deg,#F3D9A0,#C9962E);-webkit-background-clip:text;background-clip:text;color:transparent}
+.intro p.sub{color:var(--tx-light);max-width:500px;margin:18px auto 0;font-size:16.5px;line-height:1.65}
+.facts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:26px 0 4px}
+.fact{background:rgba(220,172,83,.08);border:1px solid rgba(220,172,83,.22);border-radius:12px;padding:11px 16px;color:var(--tx-light);font-size:13px;display:flex;align-items:center;gap:8px}
+.fact b{color:var(--gold-soft)}
+.disc-intro{max-width:520px;margin:22px auto 0;font-size:12.5px;color:var(--tx-mute);line-height:1.55;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 16px}
+.disc-intro b{color:var(--tx-light)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(180deg,#EBCB89,#C9962E);color:#1A140A;border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:16px;padding:16px 30px;border-radius:14px;box-shadow:0 16px 36px -12px rgba(201,150,46,.55);transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 22px 44px -12px rgba(201,150,46,.7)}
+.btn.ghost{background:transparent;color:var(--gold-soft);box-shadow:none;border:1px solid rgba(220,172,83,.4);font-weight:600}
+.btn.ghost:hover{background:rgba(220,172,83,.1);transform:none}
+.btn.sm{padding:12px 20px;font-size:14px}
+
+/* ===== QUIZ ===== */
+.quiz{padding:8px 0 50px}
+.prog{height:6px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin:6px 0 0}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft));border-radius:99px;transition:width .4s ease}
+.qcard{flex:1;display:flex;flex-direction:column;justify-content:center;padding:30px 0}
+.qdim{font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--gold-deep);margin-bottom:14px;display:flex;align-items:center;gap:9px}
+.qdim .dot{width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.qtext{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(22px,4.2vw,30px);color:#fff;line-height:1.32;margin-bottom:8px}
+.qhint{color:var(--tx-mute);font-size:14px;margin-bottom:26px}
+.opts{display:grid;gap:11px}
+.opt{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 18px;cursor:pointer;transition:all .15s;color:var(--tx-light);font-size:16px;font-weight:500;text-align:left}
+.opt:hover{border-color:var(--gold);background:rgba(220,172,83,.1)}
+.opt.sel{border-color:var(--gold);background:rgba(220,172,83,.16);color:#fff}
+.opt .rad{width:22px;height:22px;border-radius:50%;border:2px solid var(--tx-mute);flex:none;position:relative;transition:.15s}
+.opt.sel .rad{border-color:var(--gold)}
+.opt.sel .rad:after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--gold)}
+.opt .lvl{margin-left:auto;font-size:12px;color:var(--tx-mute);font-variant-numeric:tabular-nums}
+.qnav{display:flex;justify-content:space-between;align-items:center;margin-top:26px;gap:12px}
+
+/* ===== RESULT ===== */
+.result{padding:10px 0 60px}
+.rhead{text-align:center;padding:10px 0 8px}
+.rhead .eyebrow{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-deep);font-weight:700}
+.rhead h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,5vw,38px);color:#fff;margin-top:8px;line-height:1.15}
+
+.card{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));border:1px solid rgba(220,172,83,.18);border-radius:20px;padding:26px;margin-top:18px}
+.card .ct{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);font-weight:700;margin-bottom:4px}
+.card h3{font-family:'Fraunces',serif;font-weight:600;font-size:21px;color:#fff;margin-bottom:6px}
+
+/* gauge */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center}
+.gauge{position:relative;width:100%;max-width:340px}
+.glabel{position:absolute;left:0;right:0;top:54%;text-align:center}
+.glabel .score{font-family:'Fraunces',serif;font-size:46px;font-weight:600;color:#fff;line-height:1}
+.glabel .of{font-size:13px;color:var(--tx-mute)}
+.levelpill{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:99px;font-weight:800;font-size:15px;margin-top:6px}
+.gtip{color:var(--tx-light);font-size:15px;text-align:center;max-width:480px;margin:14px auto 0;line-height:1.6}
+
+/* charts grid */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.radar-wrap{display:flex;align-items:center;justify-content:center;padding:6px 0}
+.bars{display:grid;gap:13px;margin-top:6px}
+.brow .bl{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px;color:var(--tx-light)}
+.brow .bl .v{color:var(--tx-mute);font-variant-numeric:tabular-nums}
+.btrack{height:9px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}
+.btrack i{display:block;height:100%;width:0;border-radius:99px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+
+/* dimension insight cards */
+.tips{display:grid;gap:13px;margin-top:4px}
+.tip{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-left:3px solid var(--gold);border-radius:13px;padding:16px 18px}
+.tip .th{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.tip .th .ic{width:34px;height:34px;border-radius:9px;background:rgba(220,172,83,.15);display:flex;align-items:center;justify-content:center;font-size:17px}
+.tip .th b{color:#fff;font-size:15.5px}
+.tip .th .sc{margin-left:auto;font-size:12px;color:var(--tx-mute)}
+.tip .body{font-size:14px;color:var(--tx-light);line-height:1.6}
+.tip .body .psy,.tip .body .spi{display:block;padding-left:22px;position:relative;margin-top:7px}
+.tip .body .psy:before{content:"🧠";position:absolute;left:0;font-size:13px}
+.tip .body .spi:before{content:"🤲";position:absolute;left:0;font-size:13px}
+.tip .body .psy b,.tip .body .spi b{color:var(--gold-soft)}
+
+/* toolbox */
+.tool{display:grid;gap:10px}
+.tool .step{display:flex;gap:13px;align-items:flex-start;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px}
+.tool .step .n{width:28px;height:28px;border-radius:8px;background:linear-gradient(180deg,#2a2412,#15120B);border:1px solid var(--gold-deep);color:var(--gold-soft);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex:none}
+.tool .step .t{font-size:14px;color:var(--tx-light)}.tool .step .t b{color:#fff}
+
+/* dalil */
+.dalil{text-align:center;background:rgba(220,172,83,.06);border:1px solid rgba(220,172,83,.2);border-radius:16px;padding:22px}
+.dalil .ar{font-size:26px;color:var(--gold-soft);line-height:1.9;margin-bottom:8px}
+.dalil .tl{font-size:12.5px;font-style:italic;color:var(--tx-mute);margin-bottom:6px}
+.dalil .id{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--tx-light);max-width:440px;margin:0 auto}
+.dalil .src{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--gold);margin-top:8px}
+
+/* professional help callout */
+.help{background:rgba(110,140,98,.12);border:1px solid rgba(157,184,144,.4);border-radius:16px;padding:20px 22px;margin-top:18px}
+.help h3{color:var(--sage-soft);font-family:'Fraunces',serif;font-size:18px;margin-bottom:7px}
+.help p{color:var(--tx-light);font-size:14px;line-height:1.6}
+
+.disc{font-size:12px;color:var(--tx-mute);line-height:1.55;margin-top:20px;text-align:center;max-width:560px;margin-left:auto;margin-right:auto}
+
+.cta-soft{text-align:center;margin-top:22px;background:linear-gradient(180deg,rgba(220,172,83,.1),rgba(220,172,83,.03));border:1px solid rgba(220,172,83,.25);border-radius:18px;padding:24px}
+.cta-soft h3{font-family:'Fraunces',serif;color:#fff;font-size:20px;margin-bottom:6px}
+.cta-soft p{color:var(--tx-light);font-size:14px;max-width:440px;margin:0 auto 16px}
+
+.ractions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+
+.foot{text-align:center;padding:26px 20px 34px;color:var(--tx-mute);font-size:12px;line-height:1.7}
+.foot a{color:var(--gold-soft);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <div class="b"><img src="assets/mark_gold.png" alt="" onerror="this.style.display='none'">YUK KHUSYUK</div>
+    <div class="step" id="stepLbl"></div>
+  </div>
+
+  <!-- INTRO -->
+  <section class="screen on intro" id="sIntro">
+    <div class="wrap">
+      <img src="assets/mark_gold.png" class="mark" alt="" onerror="this.style.display='none'">
+      <div class="eyebrow">Tes Ketenangan Hati</div>
+      <h1>Kalkulator <span class="g">Cemas</span></h1>
+      <p class="sub">Kenali tingkat & pola cemasmu lewat 15 pertanyaan singkat. Berbasis pendekatan psikologi populer, dilihat dari 5 sisi diri — lalu kami temani dengan langkah menenangkan, batin & ilmiah berjalan bareng.</p>
+      <div class="facts">
+        <div class="fact">⏱️ <b>±3 menit</b></div>
+        <div class="fact">📊 <b>Hasil grafik</b> 5 dimensi</div>
+        <div class="fact">🔒 <b>Privat</b> — tak ada data dikirim</div>
+      </div>
+      <div class="disc-intro"><b>Penting:</b> Ini alat <b>refleksi diri</b>, bukan alat diagnosis dan bukan pengganti pemeriksaan psikolog/dokter. Jawab sejujurnya sesuai kondisimu <b>2 minggu terakhir</b>.</div>
+      <div style="margin-top:26px"><button class="btn" onclick="startQuiz()">Mulai Tes →</button></div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="screen quiz" id="sQuiz">
+    <div class="wrap" style="width:100%;display:flex;flex-direction:column;flex:1">
+      <div class="prog"><i id="progBar"></i></div>
+      <div class="qcard">
+        <div class="qdim"><span class="dot"></span><span id="qDim"></span></div>
+        <div class="qtext" id="qText"></div>
+        <div class="qhint" id="qHint">Seberapa sering ini kamu rasakan dalam 2 minggu terakhir?</div>
+        <div class="opts" id="opts"></div>
+        <div class="qnav">
+          <button class="btn ghost sm" id="backBtn" onclick="prevQ()">← Kembali</button>
+          <div style="color:var(--tx-mute);font-size:13px" id="qCount"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen result" id="sResult">
+    <div class="wrap">
+      <div class="rhead">
+        <div class="eyebrow">Hasil Tes Ketenangan Hati</div>
+        <h2 id="rTitle">Ini Potret Hatimu Sekarang</h2>
+      </div>
+
+      <!-- gauge -->
+      <div class="card gauge-wrap">
+        <div class="gauge">
+          <svg id="gaugeSvg" viewBox="0 0 320 190" width="100%"></svg>
+          <div class="glabel">
+            <div class="score" id="gScore">0</div>
+            <div class="of">dari 45</div>
+          </div>
+        </div>
+        <div class="levelpill" id="levelPill"></div>
+        <p class="gtip" id="gTip"></p>
+      </div>
+
+      <!-- radar + bars -->
+      <div class="grid2">
+        <div class="card">
+          <div class="ct">Peta 5 Dimensi</div>
+          <h3>Pola cemasmu</h3>
+          <div class="radar-wrap"><svg id="radarSvg" viewBox="0 0 260 240" width="100%" style="max-width:300px"></svg></div>
+        </div>
+        <div class="card">
+          <div class="ct">Rincian Skor</div>
+          <h3>Sisi mana yang paling kebakar</h3>
+          <div class="bars" id="bars" style="margin-top:14px"></div>
+        </div>
+      </div>
+
+      <!-- dimension insights -->
+      <div class="card">
+        <div class="ct">Bacaan Personal</div>
+        <h3>Yang lagi paling kamu butuhin</h3>
+        <p style="color:var(--tx-mute);font-size:13.5px;margin:2px 0 16px">Pendekatan psikologi 🧠 + ketenangan batin 🤲 — untuk dimensi yang skornya paling tinggi.</p>
+        <div class="tips" id="tips"></div>
+      </div>
+
+      <!-- universal toolbox -->
+      <div class="card">
+        <div class="ct">Pertolongan Pertama</div>
+        <h3>Saat cemas datang mendadak</h3>
+        <div class="tool" style="margin-top:14px">
+          <div class="step"><div class="n">1</div><div class="t"><b>Grounding 5-4-3-2-1.</b> Sebut 5 hal yang kamu lihat, 4 yang kamu dengar, 3 yang kamu sentuh, 2 yang kamu cium, 1 yang kamu rasakan. Tarik pikiran ke <em>sekarang</em>.</div></div>
+          <div class="step"><div class="n">2</div><div class="t"><b>Napas kotak 4-4-4-4.</b> Tarik 4 detik, tahan 4, embus 4, tahan 4. Ulang 4×. Ini ngasih sinyal "aman" ke tubuhmu.</div></div>
+          <div class="step"><div class="n">3</div><div class="t"><b>Labeli pikirannya.</b> Bilang dalam hati: <em>"ini cuma pikiran cemas, bukan fakta."</em> Kamu nggak harus percaya semua yang kamu pikirkan.</div></div>
+          <div class="step"><div class="n">4</div><div class="t"><b>Wudhu &amp; 2 rakaat.</b> Pindahkan diri ke sajadah. Perlambat tiap gerakan (tuma'ninah), dan di sujud bisikkan satu hal yang paling berat hari ini.</div></div>
+        </div>
+      </div>
+
+      <!-- dalil -->
+      <div class="card" style="border-color:rgba(220,172,83,.25)">
+        <div class="dalil">
+          <p class="ar">أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ</p>
+          <p class="tl">Alā bidzikrillāhi taṭma'innul-qulūb</p>
+          <p class="id">"Ingatlah, hanya dengan mengingat Allah, hati menjadi tenang."</p>
+          <p class="src">QS. AR-RA'D : 28</p>
+        </div>
+      </div>
+
+      <!-- professional help (conditional) -->
+      <div id="helpBox"></div>
+
+      <!-- soft CTA -->
+      <div class="cta-soft">
+        <h3>Mau belajar nenangin cemas lewat sholat?</h3>
+        <p>Ebook <em>Sholat Solusi Anxiety</em> nuntun kamu pelan-pelan keluar dari lingkaran cemas — lewat sholat yang akhirnya beneran kerasa.</p>
+        <a class="btn sm" href="lp.html">Lihat Ebook-nya →</a>
+      </div>
+
+      <p class="disc"><b style="color:var(--tx-light)">Disclaimer.</b> Hasil ini adalah refleksi diri berbasis pendekatan psikologi populer, <b style="color:var(--tx-light)">bukan diagnosis klinis</b> dan bukan pengganti psikolog/dokter. Skor tinggi bukan vonis, skor rendah bukan jaminan. Kalau kamu merasa butuh, jangan ragu cari pendampingan profesional.</p>
+
+      <div class="ractions">
+        <button class="btn ghost sm" onclick="restart()">↻ Ulangi Tes</button>
+        <button class="btn sm" onclick="shareResult()">Simpan Hasil</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    Yuk Khusyuk — Butuh petunjuk? Yuk khusyuk! · <a href="https://wa.me/6289531845105">WhatsApp</a> · <a href="https://lynk.id/yukkhusyuk">lynk.id/yukkhusyuk</a>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const DIMS = {
+  pikiran:  {label:'Pikiran',  full:'Pikiran (Kognitif)', ic:'🧠', color:'#DCAC53'},
+  tubuh:    {label:'Tubuh',    full:'Tubuh (Fisik)',      ic:'🫀', color:'#D99A4E'},
+  emosi:    {label:'Emosi',    full:'Emosi (Afektif)',    ic:'🌊', color:'#C2663D'},
+  kontrol:  {label:'Kontrol',  full:'Perilaku & Kontrol', ic:'🧭', color:'#B8893A'},
+  batin:    {label:'Batin',    full:'Ketenangan Batin',   ic:'🤲', color:'#6E8C62'},
+};
+const Q = [
+  {d:'pikiran', t:'Pikiranku sering muter dan susah dihentikan — terutama soal hal yang belum tentu terjadi.'},
+  {d:'tubuh',   t:'Aku merasa jantung berdebar, dada sesak, atau napas pendek tanpa sebab fisik yang jelas.'},
+  {d:'emosi',   t:'Aku merasa gelisah, sulit tenang, seperti selalu "di ujung".'},
+  {d:'kontrol', t:'Cemas membuatku sulit fokus pada pekerjaan atau aktivitas sehari-hari.'},
+  {d:'batin',   t:'Saat cemas, sholatku terasa buru-buru dan sulit khusyuk.'},
+  {d:'pikiran', t:'Aku cenderung langsung membayangkan kemungkinan terburuk dari sebuah situasi.'},
+  {d:'tubuh',   t:'Ototku terasa tegang, atau aku gampang lelah padahal tak melakukan hal berat.'},
+  {d:'emosi',   t:'Aku mudah tersinggung, kaget, atau cepat panik akhir-akhir ini.'},
+  {d:'kontrol', t:'Aku merasa harus mengontrol segala hal agar bisa merasa aman.'},
+  {d:'batin',   t:'Aku merasa jauh, hampa, atau "kering" secara spiritual belakangan ini.'},
+  {d:'pikiran', t:'Aku sulit berhenti mengkhawatirkan banyak hal sekaligus.'},
+  {d:'tubuh',   t:'Aku susah tidur atau tidurku tidak nyenyak karena pikiran yang ramai.'},
+  {d:'emosi',   t:'Aku sering dihantui rasa takut atau cemas tanpa tahu pasti penyebabnya.'},
+  {d:'kontrol', t:'Aku menghindari situasi tertentu karena takut merasa cemas di sana.'},
+  {d:'batin',   t:'Saat berat, aku sulit merasa bahwa ada tempat untuk bersandar dan berserah.'},
+];
+const SCALE = [
+  {v:0, l:'Tidak pernah'},
+  {v:1, l:'Beberapa hari'},
+  {v:2, l:'Lebih dari separuh hari'},
+  {v:3, l:'Hampir setiap hari'},
+];
+const answers = new Array(Q.length).fill(null);
+let cur = 0;
+
+/* ============ NAV ============ */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');window.scrollTo(0,0);}
+function startQuiz(){cur=0;renderQ();show('sQuiz');}
+function renderQ(){
+  const q=Q[cur], dim=DIMS[q.d];
+  document.getElementById('qDim').textContent=dim.full;
+  document.querySelector('.qdim .dot').style.background=dim.color;
+  document.getElementById('qText').textContent=q.t;
+  document.getElementById('progBar').style.width=((cur)/Q.length*100)+'%';
+  document.getElementById('stepLbl').textContent='Pertanyaan '+(cur+1)+' / '+Q.length;
+  document.getElementById('qCount').textContent=(cur+1)+' dari '+Q.length;
+  document.getElementById('backBtn').style.visibility=cur===0?'hidden':'visible';
+  const o=document.getElementById('opts');o.innerHTML='';
+  SCALE.forEach(s=>{
+    const d=document.createElement('div');
+    d.className='opt'+(answers[cur]===s.v?' sel':'');
+    d.innerHTML='<span class="rad"></span><span>'+s.l+'</span><span class="lvl">'+s.v+'</span>';
+    d.onclick=()=>{answers[cur]=s.v;document.querySelectorAll('#opts .opt').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');setTimeout(nextQ,230);};
+    o.appendChild(d);
+  });
+}
+function nextQ(){if(answers[cur]===null)return;if(cur<Q.length-1){cur++;renderQ();}else{computeResult();show('sResult');}}
+function prevQ(){if(cur>0){cur--;renderQ();}}
+
+/* ============ SCORING ============ */
+function computeResult(){
+  const sub={pikiran:0,tubuh:0,emosi:0,kontrol:0,batin:0};
+  Q.forEach((q,i)=>{sub[q.d]+=(answers[i]||0);});
+  const total=Object.values(sub).reduce((a,b)=>a+b,0);  // 0..45
+  const level=getLevel(total);
+  // gauge
+  drawGauge(total,level);
+  document.getElementById('gScore').textContent=total;
+  const pill=document.getElementById('levelPill');
+  pill.textContent=level.name;pill.style.background=level.bg;pill.style.color=level.fg;
+  document.getElementById('gTip').textContent=level.tip;
+  document.getElementById('rTitle').textContent=level.title;
+  // radar
+  drawRadar(sub);
+  // bars
+  drawBars(sub);
+  // tips (top dimensions, score>=4 of 9)
+  drawTips(sub);
+  // help box
+  document.getElementById('helpBox').innerHTML = level.help || '';
+}
+function getLevel(t){
+  if(t<=9) return {key:'minimal',name:'Tenang',title:'Hatimu Relatif Tenang',
+    bg:'rgba(110,140,98,.2)',fg:'#9DB890',
+    tip:'Cemasmu sekarang dalam kadar yang wajar dan masih bisa kamu jaga. Bagus. Rawat dengan kebiasaan-kebiasaan kecil yang menenangkan.'};
+  if(t<=18) return {key:'ringan',name:'Cemas Ringan',title:'Ada Riak Cemas di Hatimu',
+    bg:'rgba(220,172,83,.2)',fg:'#EBCB89',
+    tip:'Ada gelombang cemas yang mulai terasa, tapi masih bisa kamu kelola sendiri dengan latihan yang konsisten. Jangan diabaikan, tapi juga jangan ditakuti.'};
+  if(t<=27) return {key:'sedang',name:'Cemas Sedang',title:'Cemasmu Cukup Terasa',
+    bg:'rgba(217,154,78,.22)',fg:'#D99A4E',
+    tip:'Cemas ini mungkin mulai mengganggu fokus, tidur, atau hari-harimu. Terus jalankan ikhtiar batin — dan pertimbangkan untuk cerita ke orang yang kamu percaya atau tenaga profesional.',
+    help:helpHTML('sedang')};
+  return {key:'berat',name:'Cemas Tinggi',title:'Hatimu Lagi Memikul Banyak',
+    bg:'rgba(194,102,61,.25)',fg:'#E0936B',
+    tip:'Cemas yang kamu rasakan terasa berat. Kamu nggak harus nanggung ini sendirian. Ikhtiar batin tetap jalan — tapi tolong, libatkan juga pendampingan profesional.',
+    help:helpHTML('berat')};
+}
+function helpHTML(level){
+  const extra = level==='berat'
+   ? '<p style="margin-top:8px">Kalau kamu mulai merasa nggak sanggup lagi, atau muncul pikiran untuk menyakiti diri — <b style="color:#fff">jangan tunda</b>. Hubungi psikolog, dokter, atau orang terdekat yang kamu percaya secepatnya. Itu langkah paling berani, bukan tanda lemah.</p>'
+   : '';
+  return '<div class="help"><h3>🤝 Kamu nggak harus sendirian</h3><p>Menemui psikolog atau dokter bukan tanda imanmu kurang — itu bagian dari ikhtiar lahir, yang jalan bareng ikhtiar batin. Sama seperti kamu ke dokter saat badan sakit, jiwa yang lelah juga berhak ditemani ahlinya.'+extra+'</p></div>';
+}
+
+/* ============ GAUGE (semicircle) ============ */
+function polar(cx,cy,r,deg){const a=(deg-180)*Math.PI/180;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+function arc(cx,cy,r,a0,a1){const[x0,y0]=polar(cx,cy,r,a0),[x1,y1]=polar(cx,cy,r,a1);const large=(a1-a0)>180?1:0;return`M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}`;}
+function drawGauge(total,level){
+  const svg=document.getElementById('gaugeSvg');const cx=160,cy=170,r=128;
+  const zones=[{a0:0,a1:40,c:'#6E8C62'},{a0:40,a1:80,c:'#DCAC53'},{a0:80,a1:120,c:'#D99A4E'},{a0:120,a1:180,c:'#C2663D'}];
+  let h='';
+  h+=`<path d="${arc(cx,cy,r,0,180)}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="20" stroke-linecap="round"/>`;
+  zones.forEach(z=>{h+=`<path d="${arc(cx,cy,r,z.a0,z.a1)}" fill="none" stroke="${z.c}" stroke-width="20" stroke-linecap="butt" opacity=".9"/>`;});
+  const ang=Math.min(180,total/45*180);
+  const[nx,ny]=polar(cx,cy,r-2,ang);
+  h+=`<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>`;
+  h+=`<circle cx="${cx}" cy="${cy}" r="9" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="4" fill="${level.fg}"/>`;
+  svg.innerHTML=h;
+}
+
+/* ============ RADAR (pentagon) ============ */
+function drawRadar(sub){
+  const svg=document.getElementById('radarSvg');const cx=130,cy=120,R=88,max=9;
+  const keys=Object.keys(DIMS);const N=keys.length;
+  function pt(i,rad){const a=(-90+i*360/N)*Math.PI/180;return[cx+rad*Math.cos(a),cy+rad*Math.sin(a)];}
+  let h='';
+  // grid rings
+  for(let g=1;g<=3;g++){const rr=R*g/3;let p='';for(let i=0;i<N;i++){const[x,y]=pt(i,rr);p+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' ';}p+='Z';h+=`<path d="${p}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>`;}
+  // axes + labels
+  keys.forEach((k,i)=>{const[x,y]=pt(i,R);h+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.08)"/>`;const[lx,ly]=pt(i,R+20);h+=`<text x="${lx}" y="${ly}" fill="${DIMS[k].color}" font-size="11" font-weight="700" font-family="Plus Jakarta Sans" text-anchor="middle" dominant-baseline="middle">${DIMS[k].label}</text>`;});
+  // data polygon
+  let dp='';keys.forEach((k,i)=>{const rad=R*Math.max(.04,sub[k]/max);const[x,y]=pt(i,rad);dp+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' ';});dp+='Z';
+  h+=`<path d="${dp}" fill="rgba(220,172,83,.28)" stroke="#DCAC53" stroke-width="2"/>`;
+  keys.forEach((k,i)=>{const rad=R*Math.max(.04,sub[k]/max);const[x,y]=pt(i,rad);h+=`<circle cx="${x}" cy="${y}" r="3.2" fill="#EBCB89"/>`;});
+  svg.innerHTML=h;
+}
+
+/* ============ BARS ============ */
+function drawBars(sub){
+  const wrap=document.getElementById('bars');wrap.innerHTML='';
+  const keys=Object.keys(DIMS).sort((a,b)=>sub[b]-sub[a]);
+  keys.forEach(k=>{
+    const pct=Math.round(sub[k]/9*100);
+    const row=document.createElement('div');row.className='brow';
+    row.innerHTML=`<div class="bl"><span>${DIMS[k].ic} ${DIMS[k].full}</span><span class="v">${sub[k]}/9</span></div><div class="btrack"><i style="background:${DIMS[k].color}"></i></div>`;
+    wrap.appendChild(row);
+    requestAnimationFrame(()=>{setTimeout(()=>{row.querySelector('i').style.width=pct+'%';},60);});
+  });
+}
+
+/* ============ DIMENSION TIPS ============ */
+const TIPS={
+  pikiran:{title:'Pikiranmu lagi overaktif',
+    psy:'<b>Defusi kognitif:</b> begitu pikiran "what if" muncul, beri label — <em>"oh, ini pikiran cemas."</em> Kamu mengamati pikiran, bukan jadi pikiran itu. Coba juga "jam khawatir": tunda overthinking ke 15 menit khusus nanti sore.',
+    spi:'<b>Alihkan ke dzikir.</b> Pikiran yang ramai butuh satu titik untuk pulang. Pegang satu kalimat — <em>"Lā ilāha illallāh"</em> — dan ulang pelan sampai napasmu ikut melambat.'},
+  tubuh:{title:'Tubuhmu lagi tegang',
+    psy:'<b>Atur napasmu dulu.</b> Tubuh cemas mengira ada bahaya. Napas 4-7-8 (tarik 4, tahan 7, embus 8) menekan "rem" alami tubuh. Lemaskan rahang & bahu yang diam-diam kamu kunci.',
+    spi:'<b>Tuma\'ninah.</b> Bawa ke sholat: perlambat tiap gerakan, dan di sujud tarik satu napas penuh sambil diam sejenak. Tubuh yang dikasih jeda akan belajar bahwa ia aman.'},
+  emosi:{title:'Emosimu lagi gampang kebakar',
+    psy:'<b>Self-compassion:</b> berhenti memarahi diri karena cemas. Namai emosinya ("aku lagi takut"), dan perlakukan dirimu selembut kamu memperlakukan sahabat yang sedang susah.',
+    spi:'<b>Doa penenang.</b> Nabi SAW mengajarkan: <em>"Allāhumma innī a\'ūdzu bika minal-hammi wal-ḥazan"</em> — Ya Allah, aku berlindung dari cemas & sedih (HR. Bukhari). Baca tiap dada mulai sesak.'},
+  kontrol:{title:'Kamu lagi pengen ngontrol semua',
+    psy:'<b>Behavioral activation:</b> cemas bikin beku. Pecah jadi satu langkah terkecil yang bisa kamu lakukan sekarang, lakukan, lalu satu lagi. Pisahkan: mana yang dalam kendalimu, mana yang bukan.',
+    spi:'<b>Tawakkal di sujud.</b> Yang di luar kendalimu — serahkan. Resapi <em>"warzuqnî"</em> (berilah aku rezeki) di duduk antara dua sujud: yang mengatur hasil itu Allah, tugasmu cuma ikhtiar.'},
+  batin:{title:'Batinmu lagi haus tempat sandar',
+    psy:'<b>Rutinitas yang menambatkan:</b> jiwa yang gelisah tenang oleh ritme. Jadwal tidur, makan, dan ibadah yang teratur memberi rasa "tanah pijakan" buat hatimu.',
+    spi:'<b>Jadikan sholat tempat pulang.</b> Ini inti metode di ebook <em>Sholat Solusi Anxiety</em>: SADAR (paham kenapa kosong) → HADIR (cara hadirkan hati) → PULANG (sholat jadi tempat ngadu tiap hari).'},
+};
+function drawTips(sub){
+  const wrap=document.getElementById('tips');wrap.innerHTML='';
+  let keys=Object.keys(DIMS).filter(k=>sub[k]>=4).sort((a,b)=>sub[b]-sub[a]);
+  if(keys.length===0){keys=[Object.keys(DIMS).sort((a,b)=>sub[b]-sub[a])[0]];}
+  keys.slice(0,3).forEach(k=>{
+    const t=TIPS[k];
+    const el=document.createElement('div');el.className='tip';
+    el.innerHTML=`<div class="th"><span class="ic">${DIMS[k].ic}</span><b>${t.title}</b><span class="sc">${sub[k]}/9</span></div>
+      <div class="body"><span class="psy">${t.psy}</span><span class="spi">${t.spi}</span></div>`;
+    wrap.appendChild(el);
+  });
+}
+
+/* ============ ACTIONS ============ */
+function restart(){answers.fill(null);cur=0;show('sIntro');}
+function shareResult(){
+  const t=document.getElementById('gScore').textContent;
+  const lvl=document.getElementById('levelPill').textContent;
+  const txt=`Hasil Tes Ketenangan Hati (Yuk Khusyuk): skor ${t}/45 — ${lvl}. Cek punyamu & pelajari cara nenangin cemas lewat sholat.`;
+  if(navigator.share){navigator.share({title:'Tes Ketenangan Hati',text:txt}).catch(()=>{});}
+  else{navigator.clipboard&&navigator.clipboard.writeText(txt);alert('Ringkasan hasil disalin. Tempel di mana pun untuk menyimpannya.\n\n'+txt);}
+}
+</script>
+</body>
+</html>
