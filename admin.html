@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Khusyuk Learn</title>
+<style>
+  :root{--gold:#DCAC53;--ink:#2A3A50;--line:#e7ddc6;--bg:#F8F1E4}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);padding:24px}
+  .wrap{max-width:920px;margin:0 auto}
+  h1{font-size:26px;margin-bottom:4px}.sub{color:#8b7f66;margin-bottom:20px;font-size:14px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:18px;box-shadow:0 8px 24px -16px rgba(0,0,0,.2)}
+  label{display:block;font-size:13px;font-weight:600;margin:8px 0 4px}
+  input{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit}
+  input:focus{outline:none;border-color:var(--gold)}
+  button{padding:11px 16px;border:none;border-radius:10px;background:var(--ink);color:#fff;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit}
+  button.gold{background:linear-gradient(180deg,#f2cc79,#d49b33);color:#3a2a08}
+  button.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+  button.del{background:#f4d6d0;color:#b03a26}
+  button.off{background:#eee;color:#666}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .row>div{flex:1;min-width:160px}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:#8b7f66;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+  .pill.on{background:#dff3e1;color:#2e7d44}.pill.off{background:#f3dede;color:#b03a26}
+  .tag{font-size:11px;color:#8b7f66}
+  .stat{display:flex;gap:24px;margin-bottom:6px}
+  .stat b{font-size:24px}.stat span{font-size:12px;color:#8b7f66;display:block}
+  .err{color:#b03a26;font-size:13px;margin-top:8px}
+  .ok{color:#2e7d44;font-size:13px;margin-top:8px}
+  .gate{max-width:380px;margin:60px auto}
+  code{background:#f1ebdb;padding:2px 6px;border-radius:6px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🛠️ Admin — Khusyuk Learn</h1>
+  <div class="sub">Kelola siapa yang berhak akses web app (dari pembelian produk upselling).</div>
+
+  <!-- GATE -->
+  <div id="gate" class="card gate">
+    <label>Admin Token</label>
+    <input id="tok" type="password" placeholder="Masukkan ADMIN_TOKEN" onkeydown="if(event.key==='Enter')login()">
+    <div style="height:10px"></div>
+    <button class="gold" style="width:100%" onclick="login()">Masuk</button>
+    <div id="gateErr" class="err"></div>
+  </div>
+
+  <!-- PANEL -->
+  <div id="panel" style="display:none">
+    <div class="card">
+      <div class="stat">
+        <div><b id="stEnt">0</b><span>Email berhak akses</span></div>
+        <div><b id="stUsers">0</b><span>User pernah login</span></div>
+        <button class="sm off" style="margin-left:auto;align-self:center" onclick="logout()">Keluar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:8px">➕ Tambah Pembeli (beri akses)</h3>
+      <div class="row">
+        <div><label>Email / Gmail pembeli</label><input id="aEmail" type="email" placeholder="nama@gmail.com"></div>
+        <div><label>Nama (opsional)</label><input id="aName" type="text" placeholder="Nama pembeli"></div>
+        <div><label>Produk (opsional)</label><input id="aProduct" type="text" placeholder="Upselling Khusyuk Learn"></div>
+        <div style="flex:0"><button class="gold" onclick="addEnt()">Tambah</button></div>
+      </div>
+      <div id="addMsg"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:4px">📋 Daftar Akses</h3>
+      <div class="tag">Sumber: <code>seed</code> (otomatis), <code>admin</code> (manual), <code>webhook</code> (pembelian otomatis)</div>
+      <table>
+        <thead><tr><th>Email</th><th>Nama</th><th>Produk</th><th>Sumber</th><th>Status</th><th></th></tr></thead>
+        <tbody id="entBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:8px">👥 User Terdaftar</h3>
+      <table>
+        <thead><tr><th>Email</th><th>Nama</th><th>Login via</th><th>Akses</th><th>Login terakhir</th></tr></thead>
+        <tbody id="userBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+var TOK = sessionStorage.getItem('kl_admin_tok') || '';
+
+function hdr(){ return { 'Content-Type':'application/json', 'X-Admin-Token': TOK }; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+function login(){
+  TOK = document.getElementById('tok').value.trim();
+  document.getElementById('gateErr').textContent = '';
+  fetch('/api/admin/stats', { headers: hdr() }).then(function(r){
+    if(r.status===200){ sessionStorage.setItem('kl_admin_tok', TOK); showPanel(); return r.json(); }
+    document.getElementById('gateErr').textContent = 'Token salah.';
+  });
+}
+function logout(){ sessionStorage.removeItem('kl_admin_tok'); TOK=''; location.reload(); }
+
+function showPanel(){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('panel').style.display='block';
+  refresh();
+}
+
+function refresh(){
+  fetch('/api/admin/stats',{headers:hdr()}).then(r=>r.json()).then(function(s){
+    if(s.ok){ document.getElementById('stEnt').textContent=s.entitlements; document.getElementById('stUsers').textContent=s.users; }
+  });
+  // Ambil entitlements dulu, lalu users (untuk tahu siapa yang berhak akses)
+  fetch('/api/admin/entitlements',{headers:hdr()}).then(r=>r.json()).then(function(d){
+    var ents=d.entitlements||[];
+    var active={}; ents.forEach(function(e){ if(e.active) active[e.email]=true; });
+    var b=document.getElementById('entBody'); b.innerHTML='';
+    ents.forEach(function(e){
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td>'+esc(e.email)+'</td><td>'+esc(e.name)+'</td><td>'+esc(e.product)+'</td>'+
+        '<td><span class="tag">'+esc(e.source)+'</span></td>'+
+        '<td><span class="pill '+(e.active?'on':'off')+'">'+(e.active?'AKTIF':'NONAKTIF')+'</span></td>'+
+        '<td style="white-space:nowrap">'+
+          '<button class="sm '+(e.active?'off':'gold')+'" onclick="toggleEnt(\''+esc(e.email)+'\','+(e.active?0:1)+')">'+(e.active?'Nonaktifkan':'Aktifkan')+'</button> '+
+          '<button class="sm del" onclick="delEnt(\''+esc(e.email)+'\')">Hapus</button>'+
+        '</td>';
+      b.appendChild(tr);
+    });
+    fetch('/api/admin/users',{headers:hdr()}).then(r=>r.json()).then(function(d2){
+      var ub=document.getElementById('userBody'); ub.innerHTML='';
+      (d2.users||[]).forEach(function(u){
+        var tr=document.createElement('tr');
+        var last=u.last_login?new Date(u.last_login).toLocaleString('id-ID'):'-';
+        var has=!!active[u.email];
+        tr.innerHTML='<td>'+esc(u.email)+'</td><td>'+esc(u.name)+'</td><td>'+esc(u.provider)+'</td>'+
+          '<td><span class="pill '+(has?'on':'off')+'">'+(has?'YA':'TIDAK')+'</span></td>'+
+          '<td>'+esc(last)+'</td>';
+        ub.appendChild(tr);
+      });
+    });
+  });
+}
+
+function addEnt(){
+  var email=document.getElementById('aEmail').value.trim();
+  var name=document.getElementById('aName').value.trim();
+  var product=document.getElementById('aProduct').value.trim();
+  var msg=document.getElementById('addMsg'); msg.innerHTML='';
+  fetch('/api/admin/entitlements',{method:'POST',headers:hdr(),body:JSON.stringify({email:email,name:name,product:product})})
+    .then(r=>r.json()).then(function(d){
+      if(d.ok){ msg.innerHTML='<div class="ok">✓ '+esc(email)+' kini punya akses.</div>';
+        document.getElementById('aEmail').value=''; document.getElementById('aName').value=''; document.getElementById('aProduct').value='';
+        refresh(); }
+      else { msg.innerHTML='<div class="err">'+esc(d.error||'Gagal')+'</div>'; }
+    });
+}
+function toggleEnt(email,active){
+  fetch('/api/admin/entitlements/toggle',{method:'POST',headers:hdr(),body:JSON.stringify({email:email,active:!!active})})
+    .then(r=>r.json()).then(refresh);
+}
+function delEnt(email){
+  if(!confirm('Hapus akses untuk '+email+'?')) return;
+  fetch('/api/admin/entitlements?email='+encodeURIComponent(email),{method:'DELETE',headers:hdr()})
+    .then(r=>r.json()).then(refresh);
+}
+
+if(TOK){ fetch('/api/admin/stats',{headers:hdr()}).then(function(r){ if(r.status===200) showPanel(); }); }
+</script>
+</body>
+</html>
