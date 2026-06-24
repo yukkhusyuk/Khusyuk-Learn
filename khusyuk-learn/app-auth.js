@@ -17,6 +17,24 @@
   });
 
   var API = ''; // same-origin
+  var LEGACY_SESSION = 'khusyukLearn_session'; // sesi lama berbasis localStorage (TIDAK boleh dipakai untuk auth)
+
+  // -------------------------------------------------------------------
+  // KUNCI SEGERA (sinkron, sebelum browser melukis layar).
+  // Mematikan jalur auto-login localStorage milik kode lama: app langsung
+  // disembunyikan & layar login ditampilkan sampai server memvalidasi akses.
+  // -------------------------------------------------------------------
+  (function lockImmediately() {
+    try {
+      localStorage.removeItem(LEGACY_SESSION); // matikan sesi lama
+      var nav = document.getElementById('appnav');
+      if (nav) nav.style.display = 'none';
+      var screens = document.querySelectorAll('.screen');
+      for (var i = 0; i < screens.length; i++) screens[i].classList.remove('on');
+      var auth = document.getElementById('scAuth');
+      if (auth) auth.classList.add('on');
+    } catch (e) {}
+  })();
 
   function api(path, opts) {
     opts = opts || {};
@@ -75,6 +93,9 @@
   var _saveUser = window.saveUser;
   window.saveUser = function () {
     try { if (_saveUser) _saveUser.apply(this, arguments); } catch (e) {}
+    // Kode lama menulis ulang sesi localStorage; hapus lagi agar auth HANYA
+    // bergantung pada token server yang sudah divalidasi.
+    try { localStorage.removeItem(LEGACY_SESSION); } catch (e) {}
     syncProgress();
   };
 
@@ -309,9 +330,7 @@
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  // Script ini dimuat di akhir <body>, jadi DOM sudah siap — validasi
+  // langsung dijalankan (app sudah dikunci sinkron di atas).
+  boot();
 })();

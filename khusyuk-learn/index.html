@@ -761,6 +761,7 @@ function enterApp(){saveUser();document.getElementById('appnav').style.display='
 })();
 </script>
 <!-- Khusyuk Learn: Google Sign-In + backend auth/sync -->
+<script id="kl-instant-lock">/* Kunci instan: cegah auto-login dari localStorage lama (anti-bypass) */try{localStorage.removeItem('khusyukLearn_session');var _n=document.getElementById('appnav');if(_n)_n.style.display='none';var _s=document.querySelectorAll('.screen');for(var _i=0;_i<_s.length;_i++)_s[_i].classList.remove('on');var _a=document.getElementById('scAuth');if(_a)_a.classList.add('on');}catch(e){}</script>
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script src="app-auth.js"></script>
 </body>
