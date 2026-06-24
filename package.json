@@ -1,0 +1,9 @@
+{
+  "name": "khusyuk-learn",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Yuk Khusyuk web apps — static site + Scalev webhook serverless function",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

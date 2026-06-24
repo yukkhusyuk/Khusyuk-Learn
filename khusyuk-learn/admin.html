@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Khusyuk Learn</title>
+<meta name="robots" content="noindex,nofollow">
+
+<!-- ===================== SUPABASE ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ====== KONFIGURASI SUPABASE — WAJIB DIISI (sama dgn index.html) ======
+   Ambil dari dashboard Supabase: Settings -> API
+   PENTING: URL harus "bare" => https://xxxxx.supabase.co  (TANPA /rest/v1)
+   CATATAN: di sini HANYA pakai ANON KEY (public, aman). JANGAN pernah taruh
+   service_role key di file ini. */
+window.SUPABASE_URL      = 'https://yjfclclrakthympxfhsy.supabase.co';
+window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqZmNsY2xyYWt0aHltcHhmaHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxODIxNzUsImV4cCI6MjA5Nzc1ODE3NX0.UWWOBB1UUuDD8d8U2EqtI4NcemfOM7_A5sMAewAM43E';
+</script>
+
+<style>
+  :root{
+    --black:#15120c; --cream:#f5eddb; --gold:#c9a14e; --clay:#c7613b; --green:#3f7d5f;
+    --line:rgba(245,237,219,.14); --muted:#b6ab90;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at top,#241d10 0,#15120c 55%,#0d0b07 100%);color:var(--cream)}
+  a{color:var(--gold)}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 64px}
+  .brand{letter-spacing:.26em;color:var(--gold);font-weight:800;font-size:13px}
+  h1{font-size:clamp(24px,4vw,34px);margin:6px 0 2px}
+  .sub{color:var(--muted);margin:0 0 22px}
+
+  /* ---- login ---- */
+  .login{max-width:380px;margin:8vh auto 0;background:rgba(255,255,255,.04);border:1px solid var(--line);
+    border-radius:20px;padding:26px}
+  .login h2{margin:0 0 4px;font-size:22px}
+  .login p{color:var(--muted);margin:0 0 18px;font-size:14px}
+  label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}
+  input{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);
+    background:rgba(0,0,0,.25);color:var(--cream);font-size:15px}
+  input:focus{outline:none;border-color:var(--gold)}
+  .bad input,input.bad{border-color:var(--clay)}
+  button{cursor:pointer;font-family:inherit}
+  .btn{margin-top:18px;width:100%;padding:13px;border:none;border-radius:999px;font-weight:800;font-size:15px;
+    background:linear-gradient(180deg,#e0bf72,var(--gold));color:#231a07}
+  .btn.sm{width:auto;margin:0;padding:9px 15px;font-size:13px}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--cream)}
+  .btn.clay{background:linear-gradient(180deg,#d8794f,var(--clay));color:#fff}
+  .msg{margin-top:14px;font-size:14px;min-height:18px}
+  .msg.err{color:#f0a58a}.msg.ok{color:#8fce9f}
+
+  /* ---- topbar ---- */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .who{font-size:13px;color:var(--muted)}
+
+  /* ---- cards ---- */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+  .card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .card .k{font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .card .v{font-size:30px;font-weight:800;margin-top:4px}
+  .card.g .v{color:var(--green)} .card.gold .v{color:var(--gold)} .card.c .v{color:var(--clay)}
+
+  /* ---- panels ---- */
+  .panel{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:20px}
+  .panel h3{margin:0 0 12px;font-size:17px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .search{max-width:320px}
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:760px}
+  th,td{padding:11px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{position:sticky;top:0;background:#1b160d;cursor:pointer;user-select:none;font-size:12px;
+    letter-spacing:.04em;color:var(--muted)}
+  th.sorted{color:var(--gold)}
+  tbody tr:hover{background:rgba(255,255,255,.03)}
+  td.num{font-variant-numeric:tabular-nums}
+  .bar{position:relative;height:8px;border-radius:6px;background:rgba(255,255,255,.08);min-width:90px;overflow:hidden}
+  .bar > i{position:absolute;inset:0;width:0;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:6px}
+  .pct{font-size:12px;color:var(--muted);margin-left:8px}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;background:rgba(63,125,95,.18);
+    color:#9fd6b4;border:1px solid rgba(63,125,95,.35)}
+  .empty{padding:26px;text-align:center;color:var(--muted)}
+  textarea{width:100%;min-height:96px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);
+    background:rgba(0,0,0,.25);color:var(--cream);font-size:14px;font-family:inherit;resize:vertical}
+  .allow-list{margin-top:14px;max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px}
+  .allow-list .it{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line)}
+  .allow-list .it:last-child{border-bottom:none}
+  .allow-list .em{font-size:14px}
+  .allow-list .meta{font-size:11px;color:var(--muted)}
+  .xdel{border:none;background:transparent;color:#f0a58a;font-size:18px;line-height:1;cursor:pointer;padding:2px 6px}
+  .hidden{display:none}
+  .note{font-size:12px;color:var(--muted);margin-top:8px}
+  @media(max-width:680px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="loginView">
+  <div class="login">
+    <div class="brand">YUK KHUSYUK · ADMIN</div>
+    <h2>Dashboard Admin</h2>
+    <p>Masuk pakai akun admin untuk lihat progres semua user & kelola akses pembeli.</p>
+    <div id="emailField"><label>Email admin</label><input id="email" type="email" autocomplete="username" placeholder="admin@email.com"></div>
+    <div id="passField"><label>Password</label><input id="pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="btn" id="loginBtn" onclick="doLogin()">Masuk &rarr;</button>
+    <div class="msg" id="loginMsg"></div>
+    <div class="note">Belum punya akun admin? Email admin harus sudah didaftarkan di tabel <code>admins</code> (dan <code>allowed_emails</code>) lewat SQL.</div>
+  </div>
+</div>
+
+<!-- ===================== DASHBOARD ===================== -->
+<div id="appView" class="wrap hidden">
+  <div class="top">
+    <div>
+      <div class="brand">YUK KHUSYUK · ADMIN</div>
+      <h1>Progres Semua User</h1>
+      <div class="who" id="whoami"></div>
+    </div>
+    <div class="row">
+      <button class="btn sm ghost" onclick="loadAll()">↻ Refresh</button>
+      <button class="btn sm ghost" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- akses ditolak -->
+  <div id="denied" class="panel hidden">
+    <h3 style="color:#f0a58a">Akses ditolak</h3>
+    <p class="sub">Akun ini bukan admin. Hubungi pemilik untuk didaftarkan di tabel <code>admins</code>.</p>
+    <button class="btn sm" onclick="doLogout()">Logout</button>
+  </div>
+
+  <div id="adminBody" class="hidden">
+    <!-- ringkasan -->
+    <div class="cards">
+      <div class="card gold"><div class="k">Total User</div><div class="v" id="cTotal">–</div></div>
+      <div class="card g"><div class="k">Rata-rata Progress</div><div class="v" id="cAvg">–</div></div>
+      <div class="card c"><div class="k">Sudah Tamat (100%)</div><div class="v" id="cDone">–</div></div>
+    </div>
+
+    <!-- tabel progres -->
+    <div class="panel">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <h3 style="margin:0">Daftar User</h3>
+        <input class="search" id="search" placeholder="Cari nama / email…" oninput="renderTable()">
+      </div>
+      <div class="tablewrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th data-k="name">Nama</th>
+              <th data-k="email">Email</th>
+              <th data-k="cat">Kategori</th>
+              <th data-k="xp" class="num">XP</th>
+              <th data-k="streak" class="num">Streak</th>
+              <th data-k="units" class="num">Level Selesai</th>
+              <th data-k="pct">Progress</th>
+              <th data-k="updated">Terakhir Aktif</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty hidden" id="tblEmpty">Belum ada data progres user.</div>
+    </div>
+
+    <!-- kelola akses -->
+    <div class="panel">
+      <h3>Kelola Akses Pembeli (allowlist)</h3>
+      <p class="sub" style="margin:0 0 14px">Email di sini boleh mendaftar akun. Webhook Scalev menambah otomatis; di bawah ini buat input/koreksi manual.</p>
+
+      <div class="row" style="margin-bottom:14px">
+        <input id="oneEmail" class="search" type="email" placeholder="email-pembeli@contoh.com">
+        <button class="btn sm" onclick="addOne()">+ Tambah</button>
+      </div>
+
+      <label>Tambah banyak sekaligus (satu email per baris — cocok buat paste export Scalev)</label>
+      <textarea id="bulk" placeholder="a@mail.com&#10;b@mail.com&#10;c@mail.com"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn sm clay" onclick="addBulk()">Import Bulk</button>
+        <span class="msg" id="accMsg"></span>
+      </div>
+
+      <div class="allow-list" id="allowList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== SETUP ===================== */
+const TOTAL_UNITS = 16; // jumlah unit/level di app belajar
+let sb = null, me = null, rows = [];
+let sort = { key:'updated', dir:-1 };
+
+function initSb(){
+  if(sb) return sb;
+  if(!window.SUPABASE_URL || String(window.SUPABASE_URL).indexOf('GANTI')>-1 || !window.supabase) return null;
+  sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return sb;
+}
+function $(id){ return document.getElementById(id); }
+function show(el){ el.classList.remove('hidden'); }
+function hide(el){ el.classList.add('hidden'); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ===================== AUTH ===================== */
+function loginMsg(t,type){ const e=$('loginMsg'); e.textContent=t||''; e.className='msg'+(type?(' '+type):''); }
+
+async function doLogin(){
+  const c = initSb();
+  if(!c){ loginMsg('Supabase belum dikonfigurasi. Isi SUPABASE_URL & ANON KEY di atas file.','err'); return; }
+  const em = $('email').value.trim(), pw = $('pass').value;
+  let ok=true;
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ $('emailField').classList.add('bad'); ok=false; } else $('emailField').classList.remove('bad');
+  if((pw||'').length<6){ $('passField').classList.add('bad'); ok=false; } else $('passField').classList.remove('bad');
+  if(!ok) return;
+  const btn=$('loginBtn'); btn.disabled=true; loginMsg('Masuk…');
+  try{
+    const r = await c.auth.signInWithPassword({ email:em, password:pw });
+    if(r.error){
+      loginMsg(r.error.message && r.error.message.toLowerCase().indexOf('invalid login')>-1
+        ? 'Email atau password salah.' : 'Gagal masuk: '+r.error.message, 'err');
+      btn.disabled=false; return;
+    }
+    me = r.data.user;
+    await enterDashboard();
+  }catch(e){ loginMsg('Terjadi kesalahan. Coba lagi.','err'); }
+  btn.disabled=false;
+}
+
+async function doLogout(){
+  try{ if(sb) await sb.auth.signOut(); }catch(e){}
+  location.reload();
+}
+
+async function isAdmin(){
+  // Utama: panggil RPC is_admin(). Fallback: cek tabel admins (RLS hanya kasih lihat
+  // baris kalau memang admin -> ada baris = admin).
+  try{
+    const r = await sb.rpc('is_admin');
+    if(!r.error && typeof r.data === 'boolean') return r.data;
+  }catch(e){}
+  try{
+    const r2 = await sb.from('admins').select('email').limit(1);
+    if(!r2.error && Array.isArray(r2.data)) return r2.data.length > 0;
+  }catch(e){}
+  return false;
+}
+
+async function enterDashboard(){
+  hide($('loginView')); show($('appView'));
+  $('whoami').textContent = 'Login sebagai ' + (me && me.email || '');
+  const admin = await isAdmin();
+  if(!admin){ show($('denied')); hide($('adminBody')); return; }
+  hide($('denied')); show($('adminBody'));
+  await loadAll();
+}
+
+/* ===================== DATA ===================== */
+async function loadAll(){
+  await Promise.all([ loadProgress(), loadAllowed() ]);
+}
+
+async function loadProgress(){
+  const r = await sb.from('progress').select('*');
+  if(r.error){ console.warn('loadProgress', r.error.message); rows=[]; }
+  else rows = (r.data||[]).map(normalize);
+  renderSummary();
+  renderTable();
+}
+
+function normalize(u){
+  const units = Array.isArray(u.done_units) ? u.done_units.length : 0;
+  const pct = Math.min(100, Math.round(units / TOTAL_UNITS * 100));
+  return {
+    name: u.name || '(tanpa nama)',
+    email: u.email || '',
+    cat: u.cat_name || u.category || '–',
+    xp: u.xp || 0,
+    streak: u.streak || 0,
+    units: units,
+    pct: pct,
+    updated: u.updated_at || null,
+    updatedTs: u.updated_at ? Date.parse(u.updated_at) : 0,
+  };
+}
+
+function renderSummary(){
+  const n = rows.length;
+  $('cTotal').textContent = n;
+  $('cAvg').textContent = n ? Math.round(rows.reduce((s,r)=>s+r.pct,0)/n) + '%' : '0%';
+  $('cDone').textContent = rows.filter(r=>r.pct>=100).length;
+}
+
+function fmtDate(ts){
+  if(!ts) return '–';
+  const d = new Date(ts);
+  if(isNaN(d)) return '–';
+  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) +
+    ' ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderTable(){
+  const q = ($('search').value||'').trim().toLowerCase();
+  let data = rows.slice();
+  if(q) data = data.filter(r => (r.name+' '+r.email).toLowerCase().indexOf(q)>-1);
+
+  const k = sort.key, dir = sort.dir;
+  data.sort((a,b)=>{
+    let va, vb;
+    if(k==='pct'){ va=a.pct; vb=b.pct; }
+    else if(k==='updated'){ va=a.updatedTs; vb=b.updatedTs; }
+    else { va=a[k]; vb=b[k]; }
+    if(typeof va==='string'){ va=va.toLowerCase(); vb=(vb||'').toLowerCase(); }
+    if(va<vb) return -1*dir; if(va>vb) return 1*dir; return 0;
+  });
+
+  const tb = $('tbody'); tb.innerHTML='';
+  data.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>'+esc(r.name)+'</td>'+
+      '<td>'+esc(r.email)+'</td>'+
+      '<td><span class="pill">'+esc(r.cat)+'</span></td>'+
+      '<td class="num">'+r.xp+'</td>'+
+      '<td class="num">'+r.streak+'</td>'+
+      '<td class="num">'+r.units+'/'+TOTAL_UNITS+'</td>'+
+      '<td><div class="row" style="flex-wrap:nowrap"><div class="bar"><i style="width:'+r.pct+'%"></i></div><span class="pct">'+r.pct+'%</span></div></td>'+
+      '<td>'+fmtDate(r.updatedTs)+'</td>';
+    tb.appendChild(tr);
+  });
+
+  $('tblEmpty').classList.toggle('hidden', data.length>0);
+  // tandai header yang aktif
+  document.querySelectorAll('#tbl th').forEach(th=>{
+    th.classList.toggle('sorted', th.getAttribute('data-k')===sort.key);
+  });
+}
+
+document.querySelectorAll('#tbl th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const k = th.getAttribute('data-k');
+    if(sort.key===k) sort.dir*=-1; else { sort.key=k; sort.dir = (k==='name'||k==='email'||k==='cat')?1:-1; }
+    renderTable();
+  });
+});
+
+/* ===================== KELOLA AKSES ===================== */
+function accMsg(t,type){ const e=$('accMsg'); e.textContent=t||''; e.className='msg'+(type?(' '+type):''); }
+
+async function loadAllowed(){
+  const r = await sb.from('allowed_emails').select('*').order('created_at',{ascending:false});
+  const box = $('allowList');
+  if(r.error){ box.innerHTML='<div class="empty">Gagal memuat allowlist: '+esc(r.error.message)+'</div>'; return; }
+  const list = r.data||[];
+  if(!list.length){ box.innerHTML='<div class="empty">Belum ada email di allowlist.</div>'; return; }
+  box.innerHTML = list.map(e=>{
+    const meta = [e.source||'manual', e.product||'', e.order_id?('#'+e.order_id):''].filter(Boolean).join(' · ');
+    return '<div class="it"><div><div class="em">'+esc(e.email)+'</div><div class="meta">'+esc(meta)+'</div></div>'+
+      '<button class="xdel" title="Hapus" onclick="delEmail(\''+esc(e.email).replace(/'/g,"\\'")+'\')">&times;</button></div>';
+  }).join('');
+}
+
+function validEmail(s){ return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s); }
+
+async function addOne(){
+  const em = ($('oneEmail').value||'').trim().toLowerCase();
+  if(!validEmail(em)){ accMsg('Email tidak valid.','err'); return; }
+  const r = await sb.from('allowed_emails').upsert({ email:em, source:'manual' }, { onConflict:'email' });
+  if(r.error){ accMsg('Gagal: '+r.error.message,'err'); return; }
+  $('oneEmail').value=''; accMsg('Ditambahkan: '+em,'ok'); await loadAllowed();
+}
+
+async function addBulk(){
+  const raw = ($('bulk').value||'').split(/[\s,;]+/).map(s=>s.trim().toLowerCase()).filter(Boolean);
+  const emails = [...new Set(raw.filter(validEmail))];
+  const skipped = raw.length - emails.length;
+  if(!emails.length){ accMsg('Tidak ada email valid untuk diimport.','err'); return; }
+  const payload = emails.map(email=>({ email, source:'manual' }));
+  const r = await sb.from('allowed_emails').upsert(payload, { onConflict:'email' });
+  if(r.error){ accMsg('Gagal import: '+r.error.message,'err'); return; }
+  $('bulk').value='';
+  accMsg('Import '+emails.length+' email berhasil'+(skipped?(' ('+skipped+' baris dilewati/invalid)'):'')+'.','ok');
+  await loadAllowed();
+}
+
+async function delEmail(em){
+  if(!confirm('Hapus '+em+' dari allowlist? User ini tidak bisa daftar akun baru lagi.')) return;
+  const r = await sb.from('allowed_emails').delete().eq('email', em);
+  if(r.error){ accMsg('Gagal hapus: '+r.error.message,'err'); return; }
+  accMsg('Dihapus: '+em,'ok'); await loadAllowed();
+}
+
+/* ===================== SESSION RESTORE ===================== */
+(async function(){
+  const c = initSb();
+  if(!c) return;
+  try{
+    const { data } = await c.auth.getSession();
+    if(data && data.session){ me = data.session.user; await enterDashboard(); }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
