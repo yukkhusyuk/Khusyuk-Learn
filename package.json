@@ -1,0 +1,13 @@
+{
+  "name": "khusyuk-learn",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Khusyuk Learn — web app belajar bacaan sholat + backend login & data user",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
