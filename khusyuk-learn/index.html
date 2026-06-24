@@ -266,7 +266,22 @@ img{max-width:100%}
 .res .card2 li:before{content:"✓";color:var(--green-d);font-weight:800}
 
 .hidden{display:none!important}
+.authtabs{display:flex;gap:8px;background:#fff;border:2px solid var(--line);border-radius:14px;padding:5px;margin-bottom:18px}
+.authtab{flex:1;padding:11px;border-radius:10px;font-family:'Baloo 2';font-weight:700;font-size:15px;color:var(--ink-soft);background:transparent;transition:.15s}
+.authtab.on{background:linear-gradient(180deg,#5FB6EE,#3D8FE0);color:#fff;box-shadow:0 3px 0 var(--blue-d)}
+.authmsg{font-size:12.5px;font-weight:600;margin-top:12px;min-height:18px;line-height:1.45}
+.authmsg.err{color:var(--red)}.authmsg.ok{color:var(--green-d)}
+.fullbtn[disabled]{opacity:.6;pointer-events:none}
 </style>
+<!-- ===================== SUPABASE ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ====== KONFIGURASI SUPABASE — WAJIB DIISI ======
+   Ambil dari dashboard Supabase: Settings -> API
+   PENTING: URL harus "bare" => https://xxxxx.supabase.co  (TANPA /rest/v1) */
+window.SUPABASE_URL      = 'https://GANTI-PROJECT-ID.supabase.co';
+window.SUPABASE_ANON_KEY = 'GANTI-ANON-PUBLIC-KEY';
+</script>
 </head>
 <body>
 <div class="app">
@@ -278,18 +293,28 @@ img{max-width:100%}
       <h1 class="round"><span class="b">Khusyuk </span><span class="o">Learn</span></h1>
       <div class="by">by Yuk Khusyuk</div>
       <p class="tag">Belajar makna sholat dari takbir sampai salam, pelan-pelan ditemani.</p>
-      <div class="field" id="nameField">
+      <div class="authtabs">
+        <button class="authtab on" id="tabMasuk" onclick="switchAuth('masuk')">Masuk</button>
+        <button class="authtab" id="tabDaftar" onclick="switchAuth('daftar')">Daftar</button>
+      </div>
+      <div class="field" id="nameField" style="display:none">
         <label>Nama</label>
-        <input id="nameInput" type="text" placeholder="Nama panggilanmu" autocomplete="given-name" onkeydown="if(event.key==='Enter')submitEmail()">
+        <input id="nameInput" type="text" placeholder="Nama panggilanmu" autocomplete="given-name">
         <div class="err">Isi nama dulu ya.</div>
       </div>
       <div class="field" id="emailField">
         <label>Email</label>
-        <input id="emailInput" type="email" inputmode="email" placeholder="nama@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')submitEmail()">
+        <input id="emailInput" type="email" inputmode="email" placeholder="nama@email.com" autocomplete="email">
         <div class="err">Hmm, sepertinya emailnya belum tepat.</div>
       </div>
-      <button class="fullbtn" onclick="submitEmail()">Lanjut &rarr;</button>
-      <p class="authnote">Email cuma dipakai untuk menyimpan progres belajarmu.</p>
+      <div class="field" id="passField">
+        <label>Password</label>
+        <input id="passInput" type="password" placeholder="Minimal 6 karakter" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
+        <div class="err">Password minimal 6 karakter.</div>
+      </div>
+      <button class="fullbtn" id="authBtn" onclick="submitAuth()">Masuk &rarr;</button>
+      <div id="authMsg" class="authmsg"></div>
+      <p class="authnote">Progres belajarmu tersimpan aman di akunmu &mdash; bisa dilanjutkan dari perangkat mana pun.</p>
     </div>
   </section>
 
@@ -535,16 +560,121 @@ const UNITS=[
 const ALL_WORDS=UNITS.flatMap(u=>u.words);
 
 let state={xp:0,streak:1,gem:5,hearts:5,doneUnits:[],name:'',email:'',category:null,catName:''};
-/* ===================== PERSISTENCE (login + progres tersimpan per email) ===================== */
-const DBKEY='khusyukLearn_db', SKEY='khusyukLearn_session';
-function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
-function lsSet(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
-function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
-function loadDB(){try{return JSON.parse(lsGet(DBKEY)||'{}');}catch(e){return {};}}
-function loadUser(email){if(!email)return null;return loadDB()[email.toLowerCase()]||null;}
-function saveUser(){if(!state.email)return;const db=loadDB();db[state.email.toLowerCase()]={name:state.name,email:state.email,category:state.category,catName:state.catName,xp:state.xp,streak:state.streak,gem:state.gem,hearts:state.hearts,doneUnits:state.doneUnits};lsSet(DBKEY,JSON.stringify(db));lsSet(SKEY,state.email.toLowerCase());}
-function applyUser(u){state.name=u.name||'';state.email=u.email||'';state.category=u.category||null;state.catName=u.catName||'';state.xp=u.xp||0;state.streak=u.streak||1;state.gem=(u.gem!=null?u.gem:5);state.hearts=(u.hearts!=null?u.hearts:5);state.doneUnits=Array.isArray(u.doneUnits)?u.doneUnits:[];}
-function logout(){lsDel(SKEY);location.reload();}
+/* ===================== SUPABASE: AUTH + PROGRES PER USER ===================== */
+let sb=null, currentUser=null;
+function initSupabase(){
+  if(sb) return sb;
+  if(!window.SUPABASE_URL || String(window.SUPABASE_URL).indexOf('GANTI')>-1 || !window.supabase){ return null; }
+  sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return sb;
+}
+function authMsg(t,type){ var e=document.getElementById('authMsg'); if(!e)return; e.textContent=t||''; e.className='authmsg'+(type?(' '+type):''); }
+function applyUser(u){
+  state.name=u.name||''; state.email=u.email||''; state.category=u.category||null;
+  state.catName=(u.cat_name||u.catName||'');
+  state.xp=u.xp||0; state.streak=u.streak||1;
+  state.gem=(u.gem!=null?u.gem:5); state.hearts=(u.hearts!=null?u.hearts:5);
+  state.doneUnits=Array.isArray(u.done_units)?u.done_units:(Array.isArray(u.doneUnits)?u.doneUnits:[]);
+}
+async function loadProgress(){
+  if(!sb||!currentUser) return null;
+  try{
+    const r=await sb.from('progress').select('*').eq('user_id',currentUser.id).maybeSingle();
+    if(r.error){ console.warn('loadProgress:',r.error.message); return null; }
+    return r.data;
+  }catch(e){ console.warn('loadProgress:',e); return null; }
+}
+async function saveUser(){
+  if(!sb||!currentUser) return;
+  const row={ user_id:currentUser.id, name:state.name, email:state.email,
+    category:state.category, cat_name:state.catName,
+    xp:state.xp, streak:state.streak, gem:state.gem, hearts:state.hearts,
+    done_units:state.doneUnits, updated_at:new Date().toISOString() };
+  try{
+    const r=await sb.from('progress').upsert(row,{onConflict:'user_id'});
+    if(r.error) console.warn('saveUser:',r.error.message);
+  }catch(e){ console.warn('saveUser:',e); }
+}
+async function logout(){
+  try{ if(sb) await sb.auth.signOut(); }catch(e){}
+  location.reload();
+}
+let authMode='masuk';
+function switchAuth(m){
+  authMode=m;
+  document.getElementById('tabMasuk').classList.toggle('on',m==='masuk');
+  document.getElementById('tabDaftar').classList.toggle('on',m==='daftar');
+  document.getElementById('nameField').style.display=(m==='daftar')?'block':'none';
+  document.getElementById('authBtn').innerHTML=(m==='daftar')?'Daftar &rarr;':'Masuk &rarr;';
+  document.getElementById('passInput').setAttribute('autocomplete', m==='daftar'?'new-password':'current-password');
+  authMsg('');
+  ['nameField','emailField','passField'].forEach(function(id){document.getElementById(id).classList.remove('bad');});
+}
+function translateAuthErr(m,opts){
+  opts=opts||{};
+  var mode=opts.mode, status=opts.status;
+  m=(m||'').toLowerCase();
+  /* Gate allowlist: trigger DB nolak email non-pembeli. GoTrue balikin error generik
+     ("Database error saving new user" / status 500). Tampilkan pesan ramah. */
+  if(m.indexOf('email_not_allowed')>-1 || m.indexOf('not allowed')>-1 || m.indexOf('database error')>-1 || (mode==='daftar' && status===500)){
+    return 'Email ini belum terdaftar sebagai pembeli. Pakai email yang sama dengan saat kamu beli, atau hubungi admin.';
+  }
+  if(m.indexOf('invalid login')>-1) return 'Email atau password salah.';
+  if(m.indexOf('already registered')>-1||m.indexOf('already been registered')>-1) return 'Email ini sudah terdaftar. Silakan masuk.';
+  if(m.indexOf('email not confirmed')>-1) return 'Email belum dikonfirmasi. Cek inbox kamu dulu ya.';
+  if(m.indexOf('for security purposes')>-1||m.indexOf('rate')>-1) return 'Terlalu sering mencoba. Tunggu sebentar lalu ulangi.';
+  if(m.indexOf('password')>-1) return 'Password tidak valid (minimal 6 karakter).';
+  return 'Gagal: '+m;
+}
+async function afterLogin(){
+  const prog=await loadProgress();
+  const metaName=(currentUser.user_metadata&&currentUser.user_metadata.name)||'';
+  if(prog){
+    applyUser(prog);
+    if(!state.name) state.name=metaName;
+    if(!state.email) state.email=currentUser.email||'';
+    syncHud();
+    if(state.category){ enterApp(); } else { startOnboard(); }
+  } else {
+    state.email=currentUser.email||''; state.name=metaName;
+    await saveUser();
+    startOnboard();
+  }
+}
+async function submitAuth(){
+  const sbc=initSupabase();
+  if(!sbc){ authMsg('Supabase belum dikonfigurasi. Isi SUPABASE_URL & ANON KEY di bagian atas file HTML.','err'); return; }
+  const nf=document.getElementById('nameField'), nm=document.getElementById('nameInput').value.trim();
+  const ef=document.getElementById('emailField'), em=document.getElementById('emailInput').value.trim();
+  const pf=document.getElementById('passField'), pw=document.getElementById('passInput').value;
+  let ok=true;
+  if(authMode==='daftar'){ if(nm.length<1){nf.classList.add('bad');ok=false;}else{nf.classList.remove('bad');} }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ef.classList.add('bad');ok=false;}else{ef.classList.remove('bad');}
+  if((pw||'').length<6){pf.classList.add('bad');ok=false;}else{pf.classList.remove('bad');}
+  if(!ok) return;
+  const btn=document.getElementById('authBtn'); btn.disabled=true;
+  authMsg(authMode==='daftar'?'Mendaftarkan akun…':'Masuk…');
+  try{
+    if(authMode==='daftar'){
+      const r=await sbc.auth.signUp({email:em,password:pw,options:{data:{name:nm}}});
+      if(r.error){ authMsg(translateAuthErr(r.error.message,{mode:'daftar',status:r.error.status}),'err'); btn.disabled=false; return; }
+      if(!r.data.session){
+        authMsg('Akun dibuat! Cek email kamu untuk konfirmasi, lalu login lewat tab "Masuk".','ok');
+        btn.disabled=false; switchAuth('masuk'); return;
+      }
+      currentUser=r.data.user;
+      state.name=nm.charAt(0).toUpperCase()+nm.slice(1); state.email=em;
+      await saveUser();
+      btn.disabled=false; startOnboard();
+    } else {
+      const r=await sbc.auth.signInWithPassword({email:em,password:pw});
+      if(r.error){ authMsg(translateAuthErr(r.error.message),'err'); btn.disabled=false; return; }
+      currentUser=r.data.user;
+      await afterLogin();
+      btn.disabled=false;
+    }
+  }catch(e){ authMsg('Terjadi kesalahan. Coba lagi.','err'); btn.disabled=false; }
+}
 
 let lesson=null;
 
@@ -701,17 +831,6 @@ function syncHud(){const gl=document.getElementById('greetLine');if(gl)gl.textCo
 
 
 /* ===================== AUTH + ONBOARDING ===================== */
-function submitEmail(){
-  const nf=document.getElementById('nameField'),nm=document.getElementById('nameInput').value.trim();
-  const f=document.getElementById('emailField'),v=document.getElementById('emailInput').value.trim();
-  let ok=true;
-  if(nm.length<1){nf.classList.add('bad');ok=false;}else{nf.classList.remove('bad');}
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){f.classList.add('bad');ok=false;}else{f.classList.remove('bad');}
-  if(!ok)return;
-  const existing=loadUser(v);
-  if(existing){applyUser(existing);if(existing.name)state.name=existing.name;saveUser();if(existing.category){enterApp();}else{startOnboard();}return;}
-  state.name=nm.charAt(0).toUpperCase()+nm.slice(1); state.email=v; saveUser(); startOnboard();
-}
 const OBQ=[
  {q:'Seberapa sering kamu sholat sekarang?',opts:[['🕌','Rutin 5 waktu','rutin'],['🌤️','Masih bolong-bolong','kadang'],['🌱','Baru mulai belajar','baru']]},
  {q:'Apa yang paling kamu rasakan saat sholat?',opts:[['💭','Sering buru-buru & susah fokus','buruburu'],['📖','Hafal bacaannya, tapi belum paham artinya','hafal'],['🤍','Pengen lebih khusyuk & terhubung','khusyuk'],['🧩','Masih ngapalin gerakan & bacaan','ngapalin']]},
@@ -751,13 +870,17 @@ function finishOnboard(){
 function enterApp(){saveUser();document.getElementById('appnav').style.display='flex';tab('Beranda');}
 
 /* init */
-(function init(){
-  renderMap();syncHud();
-  var sess=lsGet(SKEY);
-  if(sess){var u=loadUser(sess);
-    if(u&&u.category){applyUser(u);enterApp();return;}
-    if(u){var ie=document.getElementById('emailInput');if(ie)ie.value=u.email||sess;var in_=document.getElementById('nameInput');if(in_)in_.value=u.name||'';}
-  }
+(async function init(){
+  renderMap(); syncHud(); switchAuth('masuk');
+  const sbc=initSupabase();
+  if(!sbc){ authMsg('⚠️ Supabase belum dikonfigurasi. Isi SUPABASE_URL & ANON KEY di atas file.','err'); return; }
+  try{
+    const r=await sbc.auth.getSession();
+    if(r.data && r.data.session){
+      currentUser=r.data.session.user;
+      await afterLogin();
+    }
+  }catch(e){ console.warn('init session:',e); }
 })();
 </script>
 </body>
